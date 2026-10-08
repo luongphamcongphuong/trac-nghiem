@@ -105,12 +105,21 @@ button{max-width:100%;white-space:normal}
 <div class="panel">
 <h3 style="margin-top:0">1. Import ngân hàng câu hỏi</h3>
 <div class="row">
-<label class="btn">📥 Chọn file Excel<input id="file" type="file" accept=".xlsx,.xls,.csv"></label>
-<select id="sheet" style="display:none"></select>
-<button id="loadSheet" class="secondary" style="display:none">Nạp sheet này</button>
-<a href="mau_excel_ngan_hang_cau_hoi.xlsx" class="secondary" style="text-decoration:none;padding:11px 15px;border-radius:10px;font-weight:700">⬇ Tải mẫu Excel</a>
+<label style="flex:1">
+🔗 Link Google Sheets:
+<input id="sheetUrl" type="url"
+placeholder="Dán link Google Sheets hoặc link CSV"
+style="width:100%;padding:11px;border:1px solid #ccc;border-radius:10px">
+</label>
+
+<button id="loadGoogleSheet" class="primary" type="button">
+📥 Nạp câu hỏi
+</button>
 </div>
-<div id="fileInfo" class="notice">Chưa import file. Bạn có thể dùng mẫu Excel để chuẩn hóa dữ liệu.</div>
+
+<div id="fileInfo" class="notice">
+Chưa nạp Google Sheets.
+</div>
 <div class="info">
 <b>Cấu trúc cột khuyến nghị:</b> Câu | Nội dung câu hỏi | A | B | C | D | Đúng | Lý do chọn đáp án đúng | Trích dẫn.
 <br>Phần mềm không yêu cầu số lượng câu cố định: 20, 100, 300 hay 1.000 câu đều có thể dùng.
@@ -198,19 +207,134 @@ function mapRows(rows){
   return out;
 }
 
-$("file").addEventListener("change",async e=>{
-  const f=e.target.files[0]; if(!f)return;
+$("loadGoogleSheet").onclick = async function(){
+  const url = $("sheetUrl").value.trim();
+
+  if(!url){
+    $("fileInfo").innerHTML = "❌ Vui lòng dán link Google Sheets.";
+    return;
+  }
+
   try{
-    const data=await f.arrayBuffer();
-    workbook=XLSX.read(data,{type:"array"});
-    selectedFileName=f.name;
-    $("sheet").innerHTML=workbook.SheetNames.map((s,i)=>`<option value="${i}">${esc(s)}</option>`).join("");
-    $("sheet").style.display=workbook.SheetNames.length>1?"inline-block":"none";
-    $("loadSheet").style.display="inline-block";
-    loadSelectedSheet();
-  }catch(err){$("fileInfo").innerHTML="❌ Lỗi đọc file: "+esc(err.message)}
-});
-$("loadSheet").onclick=loadSelectedSheet;
+    $("fileInfo").innerHTML = "⏳ Đang tải ngân hàng câu hỏi...";
+
+    let csvUrl = url;
+
+    // Nếu người dùng dán link Google Sheets /edit
+    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+    if(match){
+      const sheetId = match[1];
+
+      let gid = "0";
+      const gidMatch = url.match(/[?#&]gid=(\d+)/);
+
+      if(gidMatch){
+        gid = gidMatch[1];
+      }
+
+      csvUrl =
+        "https://docs.google.com/spreadsheets/d/" +
+        sheetId +
+        "/gviz/tq?tqx=out:csv&gid=" + gid;
+    }
+
+    const response = await fetch(csvUrl);
+
+    if(!response.ok){
+      throw new Error("Không thể truy cập Google Sheets.");
+    }
+
+    const text = await response.text();
+
+    if(!text || text.trim().length < 10){
+      throw new Error("Google Sheets không có dữ liệu.");
+    }
+
+    const rows = parseCSV(text);
+
+    bank = mapRows(rows);
+
+    selectedFileName = "Google Sheets";
+
+    $("settings").style.display = "block";
+
+    $("num").max = bank.length;
+    $("num").value = Math.min(20, bank.length);
+
+    $("bankInfo").innerHTML =
+      `Đã nạp <b>${bank.length}</b> câu từ <b>Google Sheets</b>.`;
+
+    $("fileInfo").innerHTML =
+      "✅ Nạp Google Sheets thành công.";
+
+    $("quiz").style.display = "none";
+    $("summary").style.display = "none";
+
+  }catch(err){
+    $("settings").style.display = "none";
+
+    $("fileInfo").innerHTML =
+      "❌ Lỗi: " + esc(err.message);
+  }
+};
+
+
+function parseCSV(text){
+
+  const rows = [];
+
+  let row = [];
+  let cell = "";
+  let insideQuotes = false;
+
+  for(let i = 0; i < text.length; i++){
+
+    const c = text[i];
+    const next = text[i + 1];
+
+    if(c === '"' && insideQuotes && next === '"'){
+      cell += '"';
+      i++;
+      continue;
+    }
+
+    if(c === '"'){
+      insideQuotes = !insideQuotes;
+      continue;
+    }
+
+    if(c === ',' && !insideQuotes){
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+
+    if((c === '\n' || c === '\r') && !insideQuotes){
+
+      if(c === '\r' && next === '\n'){
+        i++;
+      }
+
+      row.push(cell);
+      rows.push(row);
+
+      row = [];
+      cell = "";
+
+      continue;
+    }
+
+    cell += c;
+  }
+
+  if(cell !== "" || row.length){
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows;
+}
 
 function loadSelectedSheet(){
   try{
