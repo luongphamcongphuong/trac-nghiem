@@ -159,8 +159,32 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 const GUEST_KEY='quiz_app_guest_v2';
 const emptyDb=()=>({sets:[],attempts:[],wrong:[],notes:[]});
 let mode='guest', currentUser=null, cloudReady=false, saveTimer=null;
-let db=(()=>{try{const saved=localStorage.getItem(GUEST_KEY)||localStorage.getItem('quiz_app_v1');const parsed=saved?JSON.parse(saved):emptyDb();return {...emptyDb(),...parsed,notes:Array.isArray(parsed.notes)?parsed.notes:[]}}catch(e){return emptyDb()}})();
 
+const GUEST_KEY = 'quiz_app_guest_v2';
+const emptyDb = () => ({sets: [], attempts: [], wrong: [], notes: []});
+
+let mode = 'guest';
+let currentUser = null;
+let cloudReady = false;
+let saveTimer = null;
+
+let db = (() => {
+  try {
+    const saved = localStorage.getItem(GUEST_KEY)
+      || localStorage.getItem('quiz_app_v1');
+    const parsed = saved ? JSON.parse(saved) : emptyDb();
+    return {
+      ...emptyDb(),
+      ...parsed,
+      notes: Array.isArray(parsed.notes) ? parsed.notes : []
+    };
+  } catch (e) {
+    return emptyDb();
+  }
+})();
+
+// Firebase configuration
+const firebaseConfig = {
   apiKey: "AIzaSyBGax97y8ITDZYEs4BETM_P_nrYaXkWOO8",
   authDomain: "trac-nghiem-ca-nhan.firebaseapp.com",
   projectId: "trac-nghiem-ca-nhan",
@@ -170,9 +194,10 @@ let db=(()=>{try{const saved=localStorage.getItem(GUEST_KEY)||localStorage.getIt
   measurementId: "G-JHLYE659KK"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Initialize Firebase using Compat SDK
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const firestore = firebase.firestore();
 };
 let quiz={items:[],index:0,score:0,answered:false,answeredCount:0,attemptId:null,setId:null,wrong:[]};
 
