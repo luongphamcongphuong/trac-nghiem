@@ -618,8 +618,9 @@ function exportWord(){
  @page{margin:1.6cm}body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.15;color:#000}
  h1{text-align:center;font-size:15pt;margin:0 0 8pt}.code{text-align:center;margin:0 0 10pt}
  .q{page-break-inside:avoid;margin:0 0 5pt}.q p{margin:0 0 2pt;line-height:1.15}
- .opts{display:grid;grid-template-columns:1fr 1fr;column-gap:12pt;row-gap:1pt;margin:0 0 2pt}
- .opt{margin:0;padding:0;line-height:1.12}
+const optionHtml = [0, 2, 1, 3]
+  .map(j => `<div class="opt"><b>${labels[j]}.</b> ${esc(opts[j].text)}</div>`)
+  .join('');
  .exam-page{page-break-after:always}.answer-page{page-break-before:always}
  table.key{border-collapse:collapse}table.key td,table.key th{border:1px solid #555;padding:4pt 10pt}
  </style></head><body>${examDocs.join('')}${answerKey.join('')}</body></html>`;
