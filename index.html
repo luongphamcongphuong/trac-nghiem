@@ -161,10 +161,27 @@ const emptyDb=()=>({sets:[],attempts:[],wrong:[],notes:[]});
 let mode='guest', currentUser=null, cloudReady=false, saveTimer=null;
 let db=(()=>{try{const saved=localStorage.getItem(GUEST_KEY)||localStorage.getItem('quiz_app_v1');const parsed=saved?JSON.parse(saved):emptyDb();return {...emptyDb(),...parsed,notes:Array.isArray(parsed.notes)?parsed.notes:[]}}catch(e){return emptyDb()}})();
 let firebaseConfig={
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBGax97y8ITDZYEs4BETM_P_nrYaXkWOO8",
+  authDomain: "trac-nghiem-ca-nhan.firebaseapp.com",
+  projectId: "trac-nghiem-ca-nhan",
+  storageBucket: "trac-nghiem-ca-nhan.firebasestorage.app",
+  messagingSenderId: "495170313306",
+  appId: "1:495170313306:web:0588027cfbdd825764cc63",
+  measurementId: "G-JHLYE659KK"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 };
 let quiz={items:[],index:0,score:0,answered:false,answeredCount:0,attemptId:null,setId:null,wrong:[]};
 
