@@ -160,16 +160,7 @@ const GUEST_KEY='quiz_app_guest_v2';
 const emptyDb=()=>({sets:[],attempts:[],wrong:[],notes:[]});
 let mode='guest', currentUser=null, cloudReady=false, saveTimer=null;
 let db=(()=>{try{const saved=localStorage.getItem(GUEST_KEY)||localStorage.getItem('quiz_app_v1');const parsed=saved?JSON.parse(saved):emptyDb();return {...emptyDb(),...parsed,notes:Array.isArray(parsed.notes)?parsed.notes:[]}}catch(e){return emptyDb()}})();
-let firebaseConfig={
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
   apiKey: "AIzaSyBGax97y8ITDZYEs4BETM_P_nrYaXkWOO8",
   authDomain: "trac-nghiem-ca-nhan.firebaseapp.com",
   projectId: "trac-nghiem-ca-nhan",
